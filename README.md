@@ -28,6 +28,9 @@ Shows the final Entity-Relationship Diagram (ERD) of the database.
 
 Includes entities, attributes, primary keys, and foreign key relationships.
 
+<img src="model-db-lolos.png">
+
+
 ### script-lolos.sql
 
 SQL script used to:
