@@ -1,5 +1,5 @@
 -- ============================================================
--- Project: Lolo's Café
+-- Project: Lolo's Cafe
 -- Database: lolosv2
 -- Engine: MySQL 8+
 -- Charset: utf8mb4
