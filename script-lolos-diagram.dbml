@@ -1,0 +1,218 @@
+Table roles {
+  id tinyint [pk, increment]
+  name_of varchar(30) [unique, not null]
+  available tinyint [not null, default: 1]
+}
+
+Table permissions {
+  id smallint [pk, increment]
+  name_of varchar(50) [unique, not null]
+  available tinyint [not null, default: 1]
+}
+
+Table role_permission {
+  role_id tinyint [not null]
+  permission_id smallint [not null]
+
+  indexes {
+    (role_id, permission_id) [pk]
+  }
+}
+
+Table users {
+  id int [pk, increment]
+  name_of varchar(100) [not null]
+  email varchar(150) [unique]
+  phone varchar(20)
+  password_hash varchar(255)
+  visits int [not null, default: 0]
+  available tinyint [not null, default: 1]
+  date_creation timestamp [not null, default: `now()`]
+}
+
+Table user_role {
+  user_id int [not null]
+  role_id tinyint [not null]
+
+  indexes {
+    (user_id, role_id) [pk]
+  }
+}
+
+Table categories {
+  id int [pk, increment]
+  name_of varchar(50) [unique, not null]
+  available tinyint [not null, default: 1]
+}
+
+Table products {
+  id int [pk, increment]
+  id_category int [not null]
+  name_of varchar(100) [not null]
+  description varchar(255)
+  type varchar(20) [not null]  // Valores: 'BEBIDA','POSTRE'
+  has_coffee tinyint [not null, default: 0]
+  require_grain tinyint [not null, default: 0]
+  require_size tinyint [not null, default: 1]
+  allow_temperature tinyint [not null, default: 0]
+  allow_milk tinyint [not null, default: 0]
+  allow_extra tinyint [not null, default: 0]
+  url_image varchar(255)
+  base_price decimal(10,2)
+  slice_price decimal(10,2)
+  available tinyint [not null, default: 1]
+  date_creation timestamp [not null, default: `now()`]
+
+  indexes {
+    type
+    available
+    (id_category, available)
+  }
+}
+
+Table sizes {
+  id int [pk, increment]
+  name_of varchar(20) [unique, not null]
+  available tinyint [not null, default: 1]
+}
+
+Table product_size_price {
+  id_product int [not null]
+  id_size int [not null]
+  price decimal(10,2) [not null]
+
+  indexes {
+    (id_product, id_size) [pk]
+  }
+}
+
+Table options {
+  id int [pk, increment]
+  type_of varchar(20) [not null]  // Valores: 'TEMPERATURA','LECHE','EXTRA','GRANO'
+  name_of varchar(50) [not null]
+  extra_price decimal(10,2) [not null, default: 0]
+  available tinyint [not null, default: 1]
+
+  indexes {
+    (type_of, name_of) [unique]
+    type_of
+  }
+}
+
+Table option_product {
+  id_product int [not null]
+  id_option int [not null]
+
+  indexes {
+    (id_product, id_option) [pk]
+  }
+}
+
+Table offers {
+  id int [pk, increment]
+  name_of varchar(100) [not null]
+  description_of varchar(255)
+  discount_type varchar(20) [not null]  // Valores: 'PORCENTAJE','MONTO'
+  value_of decimal(10,2) [not null]
+  available tinyint [not null, default: 1]
+  start_date date
+  end_date date
+}
+
+Table offer_product {
+  id_product int [not null]
+  id_offer int [not null]
+
+  indexes {
+    (id_product, id_offer) [pk]
+  }
+}
+
+Table orders {
+  id bigint [pk, increment]
+  id_user int  // puede ser NULL para pedidos de mostrador
+  customer_name varchar(150)
+  customer_phone varchar(20)
+  customer_address varchar(255)
+  payment_method varchar(50)
+  status_of varchar(20) [not null, default: 'CREADO']  // 'CREADO','EN_PROCESO','LISTO','ENTREGADO','CANCELADO'
+  general_notes varchar(500)
+  subtotal decimal(10,2) [not null, default: 0]
+  discount decimal(10,2) [not null, default: 0]
+  total decimal(10,2) [not null, default: 0]
+  available tinyint [not null, default: 1]
+  date_creation timestamp [not null, default: `now()`]
+
+  indexes {
+    status_of
+    date_creation
+  }
+}
+
+Table order_items {
+  id bigint [pk, increment]
+  id_order bigint [not null]
+  id_product int [not null]
+  id_size int  // nullable
+  quantity int [not null, default: 1]
+  item_notes varchar(500)
+  base_price decimal(10,2) [not null]
+  total_extras decimal(10,2) [not null, default: 0]
+  total_line decimal(10,2) [not null]
+
+  indexes {
+    id_order
+  }
+}
+
+Table order_item_option {
+  item_id bigint [not null]
+  id_option int [not null]
+  applied_extra_price decimal(10,2) [not null, default: 0]
+
+  indexes {
+    (item_id, id_option) [pk]
+  }
+}
+
+Table offer_order {
+  id_order bigint [not null]
+  id_offer int [not null]
+  applied_discount decimal(10,2) [not null, default: 0]
+
+  indexes {
+    (id_order, id_offer) [pk]
+  }
+}
+
+// ----------------------------------------------
+// RELACIONES
+// ----------------------------------------------
+Ref: role_permission.role_id > roles.id
+Ref: role_permission.permission_id > permissions.id
+
+Ref: user_role.user_id > users.id
+Ref: user_role.role_id > roles.id
+
+Ref: products.id_category > categories.id
+
+Ref: product_size_price.id_product > products.id
+Ref: product_size_price.id_size > sizes.id
+
+Ref: option_product.id_product > products.id
+Ref: option_product.id_option > options.id
+
+Ref: offer_product.id_product > products.id
+Ref: offer_product.id_offer > offers.id
+
+Ref: orders.id_user > users.id  // Relación opcional (puede ser NULL)
+
+Ref: order_items.id_order > orders.id
+Ref: order_items.id_product > products.id
+Ref: order_items.id_size > sizes.id
+
+Ref: order_item_option.item_id > order_items.id
+Ref: order_item_option.id_option > options.id
+
+Ref: offer_order.id_order > orders.id
+Ref: offer_order.id_offer > offers.id
